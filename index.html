@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Bechdel Archive Process</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <header>
+    <p class="eyebrow">web development presentation</p>
+    <h1>Bechdel Archive</h1>
+    <p class="subtitle">by Stella Nathenson</p>
+    <p>
+      A presentation of my final Bechdel Archive project, how it came about,
+      the main features I built, and the coding problems I had to figure out.
+    </p>
+  </header>
+
+  <nav>
+    <a href="#start">first version</a>
+    <a href="#tools">tools</a>
+    <a href="#instant">instant search</a>
+    <a href="#system">system</a>
+    <a href="#filtering">filtering</a>
+    <a href="#cards">cards</a>
+    <a href="#api">api issue</a>
+    <a href="#fixes">fixes</a>
+    <a href="#mobile">mobile</a>
+    <a href="#final">final</a>
+  </nav>
+
+  <main>
+    <section id="intro">
+  <h2>Introduction</h2>
+
+  <p>
+    This project is a film archive built around the Bechdel Test, which is a simple way
+    of evaluating how women are represented in films. A film passes if it includes at
+    least two named women who talk to each other about something other than a man.
+  </p>
+
+  <p>
+    The Bechdel Test is usually treated as a discussion point, but I wanted to turn it
+    into a way of browsing films. Instead of just reading about it, users can filter
+    films based on their Bechdel rating and explore patterns for themselves.
+  </p>
+
+  <p>
+    Each film in the site is given a rating from 0 to 3, based on how many of the test’s
+    criteria it meets. This is shown directly on the film cards using labels and visual
+    markers, so the rating is always part of how the film is presented.
+  </p>
+
+  <ul>
+    <li>0 → fails all criteria</li>
+    <li>1 → includes women, but they do not speak to each other</li>
+    <li>2 → women speak, but only about men</li>
+    <li>3 → fully passes the Bechdel Test</li>
+  </ul>
+
+  <p>
+    I also built a filter system so users can view films by these ratings. This turns
+    the Bechdel Test into a functional part of the website.
+  </p>
+
+  <p>
+    This page explains how the project developed, the key features I built, and the
+    technical challenges behind making the site work.
+  </p>
+
+</section>
+
+    <section id="start">
+      <h2>1. The First Version</h2>
+
+      <p>
+        My first website was initially simple. I was just trying to test how the main idea could work, which was the instant search feature I was most focused on.
+      </p>
+
+      <p>
+        At this stage, the website searched through the Bechdel dataset and returned matching films.
+        It only showed basic information (what I had in the bechdel library), like the title, year, and whether the film passed or failed.
+      </p>
+
+      <pre><code>films = await fetch("bechdel.json")
+  .then(res =&gt; res.json());</code></pre>
+
+      <div class="code-notes">
+        <h3>what this code is doing</h3>
+        <ul>
+          <li><code>fetch()</code> loads the local <code>bechdel.json</code> file.</li>
+          <li><code>.json()</code> turns the file into usable JavaScript data.</li>
+          <li>The data gets stored in an array called <code>films</code>.</li>
+          <li>That array becomes the library the site searches through.</li>
+        </ul>
+      </div>
+
+      <div class="note-card">
+        <h3>process note</h3>
+        <p>
+          This was essentially my proof of concept. Before adding posters or API data, I needed to know
+          if I could make the search work instantly from a dataset.
+        </p>
+      </div>
+
+      <div class="link-box">
+        <p><strong>Version 1 website:</strong></p>
+        <a href="https://stella-nathen.github.io/bechdel-test/" target="_blank">open first website ↗</a>
+      </div>
+
+      <div class="screenshot desktop-shot">
+        <img src="first-site.png" alt="first version" />
+      </div>
+    </section>
+
+    <section id="tools">
+      <h2>2. What I Used</h2>
+
+      <div class="columns">
+        <div>
+          <h3>Core code</h3>
+          <p>
+            The project uses HTML, CSS, and JavaScript.
+          </p>
+
+          <ul>
+            <li>HTML: search bar, dropdown, and film grid</li>
+            <li>CSS: layout, colors, cards, and phone formatting</li>
+            <li>JavaScript: loading data, filtering, rendering, and API calls</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3>Data sources</h3>
+          <p>
+            I used two sources of data. The local Bechdel dataset (which I found as a JSON file as a link online) gave me the ratings,
+            and the IMDb API added the extra film details that made the cards more interesting with photos and information.
+          </p>
+
+          <pre><code>const API_BASE = "https://api.imdbapi.dev";
+let films = [];
+const imdbCache = new Map();</code></pre>
+        </div>
+      </div>
+
+      <div class="code-notes">
+        <h3>code specifics</h3>
+        <ul>
+          <li><code>const API_BASE</code> stores the API link so it can be reused.</li>
+          <li><code>let films = []</code> starts as an empty array before the JSON loads.</li>
+          <li><code>new Map()</code> creates a cache so repeated API data can be remembered.</li>
+          <li>The project is basically local data first then API data second.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="instant">
+      <h2>3. Instant Search</h2>
+
+      <p>
+        One of my main goals was to not have a search button. I wanted it to feel more like
+        a film or streaming website, like netflix, where results change as you type.
+      </p>
+
+      <p>
+        This made the site more responsive. The user can type, delete, or change the rating
+        filter and the results update without a button or refresh.
+      </p>
+
+      <pre><code>searchInput.addEventListener("input", render);
+ratingFilter.addEventListener("change", render);</code></pre>
+
+      <div class="code-notes">
+        <h3>code specifics</h3>
+        <ul>
+          <li><code>addEventListener()</code> listens for user actions.</li>
+          <li><code>"input"</code> runs every time someone types in the search bar.</li>
+          <li><code>"change"</code> runs when the dropdown filter changes.</li>
+          <li>Both events call <code>render()</code>, which rebuilds the film grid.</li>
+        </ul>
+      </div>
+
+      <p class="callout">
+        This was to immitate a streaming website or really any online film archive.
+      </p>
+    </section>
+
+    <section id="system">
+      <h2>4. How the Website Works</h2>
+
+      <p>
+        The website loads in stages instead of doing everything at once. This was important
+        as the local Bechdel data loads quickly, but the API data takes longer.
+      </p>
+
+      <div class="process">
+        <div>load data</div>
+        <div>filter results</div>
+        <div>create cards</div>
+        <div>fetch API info</div>
+        <div>update cards</div>
+      </div>
+
+      <pre><code>loadBechdelData();
+render();
+loadIMDbForCards();</code></pre>
+
+      <div class="code-notes">
+        <h3>code specifics</h3>
+        <ul>
+          <li><code>loadBechdelData()</code> loads the local dataset.</li>
+          <li><code>render()</code> creates the visible cards.</li>
+          <li><code>loadIMDbForCards()</code> fetches extra film details.</li>
+          <li><code>updateCard()</code> replaces loading text with real API data.</li>
+        </ul>
+      </div>
+
+      <p class="callout">
+        Using async functions let me show the structure of the page first, then load the details after.
+        So the user sees something quickly instead of staring at a blank unresponsive page.
+      </p>
+    </section>
+
+    <section id="filtering">
+      <h2>5. Search + Filter Logic</h2>
+
+      <p>
+        The render function is basically the control center. It decides which films are allowed
+        to appear based on the search input and the rating dropdown.
+      </p>
+
+      <pre><code>const filteredFilms = films
+  .filter(film =&gt; decodeHTML(film.title)
+    .toLowerCase()
+    .includes(search))
+  .filter(film =&gt; filter === "all" || String(film.rating) === filter)
+  .slice(0, 8);</code></pre>
+
+      <div class="code-notes">
+        <h3>code specifics</h3>
+        <ul>
+          <li><code>.filter()</code> creates a smaller array of matching films.</li>
+          <li><code>.toLowerCase()</code> makes the search case-insensitive.</li>
+          <li><code>.includes(search)</code> checks if the title contains what the user typed.</li>
+          <li><code>String(film.rating) === filter</code> compares the film rating to the dropdown value.</li>
+          <li><code>.slice(0, 8)</code> limits the page to eight films at once.</li>
+        </ul>
+      </div>
+
+      <div class="note-card">
+        <h3>eight?</h3>
+        <p>
+          I originally had more films showing, but that meant more API calls. Eight kept the page readable
+          and stopped the site from asking the API for too much at once.
+        </p>
+      </div>
+    </section>
+
+    <section id="cards">
+      <h2>6. Creating Film Cards</h2>
+
+      <p>
+        The film cards are not written manually in the HTML. JavaScript creates them from the data,
+        which makes the website more flexible.
+      </p>
+
+      <p>
+        Each card starts with placeholder content, like “loading image” and “Loading film details...”
+        Then the API data fills it in later.
+      </p>
+
+      <pre><code>function createCard(film, index) {
+  const card = document.createElement("article");
+  card.className = "card loading-card";
+  return card;
+}</code></pre>
+
+      <div class="code-notes">
+        <h3>code specifics</h3>
+        <ul>
+          <li><code>document.createElement()</code> creates a new HTML element using JavaScript.</li>
+          <li><code>card.className</code> adds CSS classes to style the card.</li>
+          <li><code>innerHTML</code> is used to insert the card layout.</li>
+          <li>Template literals let me put film data directly inside the card HTML.</li>
+        </ul>
+      </div>
+
+      <div class="screenshot desktop-shot">
+        <img src="cardlayout.png" alt="card layout screenshot" />
+      </div>
+    </section>
+
+    <section id="api">
+      <h2>7. The API Problem</h2>
+
+      <p>
+        This was the weirdest hurdle. At first, I thought some films were missing from the API
+        because certain cards would not load properly.
+      </p>
+
+      <p>
+        But the real issue was that I was making too many async requests at once. The site was
+        asking for lots of film details too quickly, so some requests failed.
+      </p>
+
+      <pre><code>const imdbId = `tt${film.imdbid}`;
+const url = `${API_BASE}/titles/${imdbId}`;
+const res = await fetch(url);</code></pre>
+
+      <div class="code-notes">
+        <h3>code specifics</h3>
+        <ul>
+          <li>The film’s IMDb ID is used to build the API request.</li>
+          <li>Template literals create the URL dynamically.</li>
+          <li><code>fetch(url)</code> asks the API for film data.</li>
+          <li><code>await</code> waits for that specific request to return.</li>
+          <li>Too many visible cards meant too many requests happening at once.</li>
+        </ul>
+      </div>
+
+      <p class="callout">
+        The bug seemed at first to me like missing film data, but it was actually a request problem.
+      </p>
+    </section>
+
+    <section id="fixes">
+      <h2>8. Fixing the API Issue</h2>
+
+      <p>
+        To fix this, I made the website less api demanding. If a request fails, it waits
+        and tries again instead of giving up immediately.
+      </p>
+
+      <pre><code>if (attempt &lt; 3) {
+  await wait(700 * attempt);
+  return fetchIMDbData(film, attempt + 1);
+}</code></pre>
+
+      <div class="code-notes">
+        <h3>retry logic specifics</h3>
+        <ul>
+          <li><code>attempt</code> tracks how many times the request has tried.</li>
+          <li><code>attempt &lt; 3</code> stops it from retrying forever.</li>
+          <li><code>wait(700 * attempt)</code> adds a delay before trying again.</li>
+          <li>The function calls itself again, which is a form of recursion! (my favourite data structure)</li>
+        </ul>
+      </div>
+
+      <p>
+        I also added fallback logic because the API did not always return image data in the same format. Sometimes images and movie posters were under dif categories in the IMDB database.
+      </p>
+
+      <pre><code>const image =
+  data.primaryImage?.url ||
+  data.image?.url ||
+  data.poster ||
+  null;</code></pre>
+
+      <div class="code-notes">
+        <h3>fallback logic specifics</h3>
+        <ul>
+          <li><code>?.</code> is optional chaining, which prevents errors if data is missing.</li>
+          <li><code>||</code> checks another option if the first one does not exist.</li>
+          <li>If no image exists, it returns <code>null</code> and the card shows a fallback state.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="mobile">
+      <h2>9. Mobile Formatting</h2>
+
+      <p>
+        I also wanted to make the site work/fit on phones. The desktop version uses a wider grid,
+        but that would be too cramped on a smaller screen.
+      </p>
+
+      <pre><code>@media (max-width: 650px) {
+  #filmGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}</code></pre>
+
+      <div class="code-notes">
+        <h3>code specifics</h3>
+        <ul>
+          <li><code>@media</code> lets CSS change based on screen size.</li>
+          <li>The grid changes from four columns to fewer columns.</li>
+          <li>On phones, the controls stack vertically.</li>
+          <li>This makes the layout adapt instead of just shrinking awkwardly.</li>
+        </ul>
+      </div>
+
+      <div class="phone-area">
+        <div class="screenshot phone-shot">
+          <img src="phone.png" alt="mobile version" />
+        </div>
+
+        <p>
+          Shows a screenshot of the mobile version. Two cards per row.
+        </p>
+      </div>
+    </section>
+
+    <section id="final">
+      <h2>10. Final Website</h2>
+
+      <p>
+        The final version keeps the instant search idea from the first website, but adds a more complete
+        card system and better data handling.
+      </p>
+
+      <p>
+        The biggest change is that the site displays more informative data, while filtering as well, and including images and bechdel test information.
+      </p>
+
+      <ul>
+        <li>instant search without a button</li>
+        <li>rating filter</li>
+        <li>dynamic film cards</li>
+        <li>posters, plots, genres, and runtime from the API</li>
+        <li>async loading and staged updates</li>
+        <li>retry logic and fallback data</li>
+        <li>responsive layout for phones</li>
+      </ul>
+
+      <div class="link-box">
+        <p><strong>Final website:</strong></p>
+        <a href="https://stella-nathen.github.io/bechdel-test-with-info/" target="_blank">open final website ↗</a>
+      </div>
+
+      <div class="screenshot desktop-shot">
+        <img src="final.png" alt="final project screenshot" />
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    Bechdel Archive process page
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
