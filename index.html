@@ -360,14 +360,6 @@ const res = await fetch(url);</code></pre>
   data.poster ||
   null;</code></pre>
 
-      <div class="code-notes">
-        <h3>fallback logic specifics</h3>
-        <ul>
-          <li><code>?.</code> is optional chaining, which prevents errors if data is missing.</li>
-          <li><code>||</code> checks another option if the first one does not exist.</li>
-          <li>If no image exists, it returns <code>null</code> and the card shows a fallback state.</li>
-        </ul>
-      </div>
     </section>
 
     <section id="mobile">
